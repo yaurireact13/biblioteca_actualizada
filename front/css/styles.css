@@ -1,0 +1,123 @@
+/* styles.css - Biblioteca Digital */
+
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  margin: 0;
+  background: #f7f7f7;
+  color: #222;
+}
+header {
+  background: #2d3e50;
+  color: #fff;
+  padding: 1rem 0.5rem;
+  text-align: center;
+}
+nav {
+  margin-top: 1rem;
+}
+nav button {
+  background: #fff;
+  color: #2d3e50;
+  border: none;
+  padding: 0.5rem 1.2rem;
+  margin: 0 0.3rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.2s;
+}
+nav button:focus, nav button:hover {
+  background: #e0e7ef;
+  outline: 2px solid #2d3e50;
+}
+main {
+  max-width: 900px;
+  margin: 2rem auto;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  padding: 2rem 1.5rem;
+  min-height: 400px;
+}
+h2 {
+  color: #2d3e50;
+  margin-top: 0;
+}
+form {
+  margin-bottom: 2rem;
+}
+label {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-weight: 500;
+}
+input, select {
+  width: 100%;
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+button[type="submit"] {
+  background: #2d3e50;
+  color: #fff;
+  border: none;
+  padding: 0.6rem 1.5rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+button[type="submit"]:hover, button[type="submit"]:focus {
+  background: #1a2533;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 2rem;
+}
+th, td {
+  border: 1px solid #e0e0e0;
+  padding: 0.7rem 0.5rem;
+  text-align: left;
+}
+th {
+  background: #f0f4f8;
+}
+tr:nth-child(even) {
+  background: #f9f9f9;
+}
+tr:focus-within {
+  outline: 2px solid #2d3e50;
+}
+.error {
+  color: #b00020;
+  background: #ffeaea;
+  padding: 0.5rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+.success {
+  color: #155724;
+  background: #d4edda;
+  padding: 0.5rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+footer {
+  text-align: center;
+  padding: 1rem 0;
+  background: #e0e7ef;
+  color: #2d3e50;
+  margin-top: 2rem;
+  border-top: 1px solid #cfd8dc;
+}
+@media (max-width: 600px) {
+  main {
+    padding: 1rem 0.3rem;
+  }
+  table, th, td {
+    font-size: 0.95rem;
+  }
+}
