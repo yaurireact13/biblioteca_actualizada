@@ -1,3 +1,20 @@
+// Clases POO
+class Usuario {
+  constructor({id, nombre, correo}) {
+    this.id = id;
+    this.nombre = nombre;
+    this.correo = correo;
+  }
+}
+
+class Reserva {
+  constructor({id, usuario_id, libro_id, fecha}) {
+    this.id = id;
+    this.usuario_id = usuario_id;
+    this.libro_id = libro_id;
+    this.fecha = fecha;
+  }
+}
 // Inicializar main y listeners de navegación
 const main = document.getElementById('main-content');
 document.getElementById('nav-libros').onclick = renderLibros;
