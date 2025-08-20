@@ -1,333 +1,281 @@
-// Clases POO
-class Usuario {
-  constructor({id, nombre, correo}) {
-    this.id = id;
-    this.nombre = nombre;
-    this.correo = correo;
-  }
-}
+// js/app.js
+document.addEventListener("DOMContentLoaded", () => {
+  // Vistas
+  const authView = document.getElementById("auth-view");
+  const appView = document.getElementById("app-view");
 
-class Reserva {
-  constructor({id, usuario_id, libro_id, fecha}) {
-    this.id = id;
-    this.usuario_id = usuario_id;
-    this.libro_id = libro_id;
-    this.fecha = fecha;
-  }
-}
-// Inicializar main y listeners de navegación
-const main = document.getElementById('main-content');
-document.getElementById('nav-libros').onclick = renderLibros;
-document.getElementById('nav-usuarios').onclick = renderUsuarios;
-document.getElementById('nav-reservas').onclick = renderReservas;
-window.addEventListener('DOMContentLoaded', renderLibros);
-// conexión con la API
-// logica de la aplicación es para gestionar libros, usuarios y reservas
-const API = {
-  libros: 'http://localhost:3000/api/libros',
-  usuarios: 'http://localhost:3000/api/usuarios',
-  reservas: 'http://localhost:3000/api/reservas'
-};
+  // Formularios
+  const loginForm = document.getElementById("login-form");
+  const registerForm = document.getElementById("register-form");
+  const usuarioForm = document.getElementById("usuario-form");
+  const libroForm = document.getElementById("libro-form");
+  const reservaForm = document.getElementById("reserva-form");
 
-// Utilidades de UI
-function showMessage(msg, type = 'success') {
-  const div = document.createElement('div');
-  div.className = type;
-  div.setAttribute('role', type === 'error' ? 'alert' : 'status');
-  div.textContent = msg;
-  document.getElementById('main-content').prepend(div);
-  setTimeout(() => div.remove(), 3500);
-}
+  // Botones
+  const logoutBtn = document.getElementById("logout");
 
-// Clases POO
-class Libro {
-  constructor({id, titulo, autor, anio, genero}) {
-    this.id = id;
-    this.titulo = titulo;
-    this.autor = autor;
-    this.anio = anio;
-    this.genero = genero;
+  // Tablas
+  const usuariosList = document.getElementById("usuarios-list");
+  const librosList = document.getElementById("libros-list");
+  const reservasList = document.getElementById("reservas-list");
+
+  // Selects para reservas
+  const usuarioSelect = document.getElementById("usuario_id");
+  const libroSelect = document.getElementById("libro_id");
+
+  const API = "http://localhost:3000/api";
+
+  // ==============================
+  // 🔑 Función helper para incluir token en headers
+  // ==============================
+  function authHeaders(extraHeaders = {}) {
+    const token = localStorage.getItem("token");
+    return {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...extraHeaders
+    };
   }
-}
-// Usuarios
-async function renderUsuarios() {
-  main.innerHTML = '<h2>Usuarios</h2>' + usuarioFormHTML();
-  const table = document.createElement('table');
-  table.innerHTML = `<thead><tr><th>ID</th><th>Nombre</th><th>Correo</th><th>Acciones</th></tr></thead><tbody></tbody>`;
-  main.appendChild(table);
-  try {
-    const res = await fetch(API.usuarios);
+
+  // ==============================
+  // Función para formatear fechas
+  // ==============================
+  function formatearFecha(fechaISO) {
+    const fecha = new Date(fechaISO);
+    const dia = String(fecha.getDate()).padStart(2, '0');
+    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+    const anio = fecha.getFullYear();
+    return `${dia}/${mes}/${anio}`; // DD/MM/YYYY
+  }
+
+  // --- AUTENTICACIÓN ---
+  loginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("login-email").value;
+    const password = document.getElementById("login-password").value;
+
+    try {
+      const res = await fetch(`${API}/usuarios/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ correo: email, contrasena: password })
+      });
+      if (!res.ok) throw new Error("Credenciales inválidas");
+      const data = await res.json();
+
+      localStorage.setItem("token", data.token);
+      authView.classList.add("hidden");
+      appView.classList.remove("hidden");
+
+      cargarUsuarios();
+      cargarLibros();
+      cargarReservas();
+    } catch (err) {
+      alert("Error al iniciar sesión: " + err.message);
+    }
+  });
+
+  registerForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const nombre = document.getElementById("reg-nombre").value;
+    const email = document.getElementById("reg-email").value;
+    const password = document.getElementById("reg-password").value;
+
+    try {
+      const res = await fetch(`${API}/usuarios`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombre, correo: email, contrasena: password })
+      });
+      if (!res.ok) throw new Error("Error en el registro");
+      alert("Usuario registrado con éxito, ahora inicia sesión.");
+      document.getElementById("btn-login").click();
+    } catch (err) {
+      alert("Error al registrar: " + err.message);
+    }
+  });
+
+  logoutBtn.addEventListener("click", () => {
+    localStorage.removeItem("token");
+    authView.classList.remove("hidden");
+    appView.classList.add("hidden");
+  });
+
+  // --- CRUD USUARIOS ---
+  async function cargarUsuarios() {
+    usuariosList.innerHTML = "";
+    const res = await fetch(`${API}/usuarios`, { headers: authHeaders() });
     const usuarios = await res.json();
-    const tbody = table.querySelector('tbody');
-    usuarios.forEach(u => {
-      const usuario = new Usuario(u);
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${usuario.id}</td><td>${usuario.nombre}</td><td>${usuario.correo}</td><td><button data-id="${usuario.id}" class="edit">Editar</button> <button data-id="${usuario.id}" class="delete">Eliminar</button></td>`;
-      tbody.appendChild(tr);
+    usuarios.forEach((u) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${u.id}</td>
+        <td>${u.nombre}</td>
+        <td>${u.correo}</td>
+        <td><button data-id="${u.id}" class="eliminar-usuario">❌</button></td>
+      `;
+      usuariosList.appendChild(tr);
     });
-    table.onclick = handleUsuarioActions;
-  } catch {
-    showMessage('Error al cargar usuarios', 'error');
+    actualizarSelectUsuarios();
   }
-  document.getElementById('usuario-form').onsubmit = handleUsuarioForm;
-}
 
-// Libros
-async function renderLibros() {
-  main.innerHTML = '<h2>Libros</h2>' + libroFormHTML();
-  const table = document.createElement('table');
-  table.innerHTML = `<thead><tr><th>ID</th><th>Título</th><th>Autor</th><th>Año</th><th>Género</th><th>Acciones</th></tr></thead><tbody></tbody>`;
-  main.appendChild(table);
-  try {
-    const res = await fetch(API.libros);
+  usuarioForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const nombre = document.getElementById("nombre").value;
+    const correo = document.getElementById("correo").value;
+
+    await fetch(`${API}/usuarios`, {
+      method: "POST",
+      headers: authHeaders(),
+      body: JSON.stringify({ nombre, correo, contrasena: "123456" })
+    });
+    usuarioForm.reset();
+    cargarUsuarios();
+  });
+
+  usuariosList.addEventListener("click", async (e) => {
+    if (e.target.classList.contains("eliminar-usuario")) {
+      const id = e.target.dataset.id;
+      await fetch(`${API}/usuarios/${id}`, {
+        method: "DELETE",
+        headers: authHeaders()
+      });
+      cargarUsuarios();
+    }
+  });
+
+  // --- CRUD LIBROS ---
+  async function cargarLibros() {
+    librosList.innerHTML = "";
+    const res = await fetch(`${API}/libros`, { headers: authHeaders() });
     const libros = await res.json();
-    const tbody = table.querySelector('tbody');
-    libros.forEach(l => {
-      const libro = new Libro(l);
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${libro.id}</td><td>${libro.titulo}</td><td>${libro.autor}</td><td>${libro.anio}</td><td>${libro.genero}</td><td><button data-id="${libro.id}" class="edit">Editar</button> <button data-id="${libro.id}" class="delete">Eliminar</button></td>`;
-      tbody.appendChild(tr);
+    libros.forEach((l) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${l.id}</td>
+        <td>${l.titulo}</td>
+        <td>${l.autor}</td>
+        <td><button data-id="${l.id}" class="eliminar-libro">❌</button></td>
+      `;
+      librosList.appendChild(tr);
     });
-    table.onclick = handleLibroActions;
-  } catch {
-    showMessage('Error al cargar libros', 'error');
+    actualizarSelectLibros();
   }
-  document.getElementById('libro-form').onsubmit = handleLibroForm;
-}
-function libroFormHTML() {
-  return `<form id="libro-form" aria-label="Formulario de libro">
-    <input type="hidden" id="libro-id">
-    <label for="titulo">Título</label>
-    <input id="titulo" required maxlength="100">
-    <label for="autor">Autor</label>
-    <input id="autor" required maxlength="100">
-    <label for="anio">Año</label>
-    <input id="anio" type="number" min="1000" max="2100" required>
-    <label for="genero">Género</label>
-    <input id="genero" required maxlength="50">
-    <button type="submit">Guardar</button>
-  </form>`;
-}
-async function handleLibroForm(e) {
-  e.preventDefault();
-  const id = document.getElementById('libro-id').value;
-  const data = {
-    titulo: document.getElementById('titulo').value.trim(),
-    autor: document.getElementById('autor').value.trim(),
-    anio: document.getElementById('anio').value,
-    genero: document.getElementById('genero').value.trim()
-  };
-  if (!data.titulo || !data.autor || !data.anio || !data.genero) {
-    showMessage('Todos los campos son obligatorios', 'error');
-    return;
-  }
-  try {
-    let res;
-    if (id) {
-      res = await fetch(`${API.libros}/${id}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
-    } else {
-      res = await fetch(API.libros, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
-    }
-    if (!res.ok) throw new Error();
-    showMessage('Libro guardado');
-    renderLibros();
-  } catch {
-    showMessage('Error al guardar libro', 'error');
-  }
-}
-async function handleLibroActions(e) {
-  if (e.target.classList.contains('edit')) {
-    const id = e.target.dataset.id;
-    try {
-      const res = await fetch(`${API.libros}/${id}`);
-      const libro = await res.json();
-      document.getElementById('libro-id').value = libro.id;
-      document.getElementById('titulo').value = libro.titulo;
-      document.getElementById('autor').value = libro.autor;
-      document.getElementById('anio').value = libro.anio;
-      document.getElementById('genero').value = libro.genero;
-    } catch {
-      showMessage('Error al cargar libro', 'error');
-    }
-  }
-  if (e.target.classList.contains('delete')) {
-    if (!confirm('¿Eliminar este libro?')) return;
-    const id = e.target.dataset.id;
-    try {
-      const res = await fetch(`${API.libros}/${id}`, {method:'DELETE'});
-      if (!res.ok) throw new Error();
-      showMessage('Libro eliminado');
-      renderLibros();
-    } catch {
-      showMessage('Error al eliminar libro', 'error');
-    }
-  }
-}
 
-// Usuarios
-async function renderUsuarios() {
-  main.innerHTML = '<h2>Usuarios</h2>' + usuarioFormHTML();
-  const table = document.createElement('table');
-  table.innerHTML = `<thead><tr><th>ID</th><th>Nombre</th><th>Correo</th><th>Acciones</th></tr></thead><tbody></tbody>`;
-  main.appendChild(table);
-  try {
-    const res = await fetch(API.usuarios);
+  libroForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const titulo = document.getElementById("titulo").value;
+    const autor = document.getElementById("autor").value;
+    const anio = document.getElementById("anio")?.value || 0;
+    const genero = document.getElementById("genero")?.value || '';
+
+    await fetch(`${API}/libros`, {
+      method: "POST",
+      headers: authHeaders(),
+      body: JSON.stringify({ titulo, autor, anio, genero })
+    });
+
+    libroForm.reset();
+    cargarLibros();
+  });
+
+  librosList.addEventListener("click", async (e) => {
+    if (e.target.classList.contains("eliminar-libro")) {
+      const id = e.target.dataset.id;
+      await fetch(`${API}/libros/${id}`, {
+        method: "DELETE",
+        headers: authHeaders()
+      });
+      cargarLibros();
+    }
+  });
+
+  // --- CRUD RESERVAS ---
+  async function cargarReservas() {
+    reservasList.innerHTML = "";
+    const res = await fetch(`${API}/reservas`, { headers: authHeaders() });
+    const reservas = await res.json();
+    reservas.forEach((r) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${r.id}</td>
+        <td>${r.usuario_nombre}</td>
+        <td>${r.libro_titulo}</td>
+        <td>${formatearFecha(r.fecha)}</td>
+        <td><button data-id="${r.id}" class="eliminar-reserva">❌</button></td>
+      `;
+      reservasList.appendChild(tr);
+    });
+  }
+
+  reservaForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const usuario_id = usuarioSelect.value;
+    const libro_id = libroSelect.value;
+    const fecha = document.getElementById("fecha").value;
+
+    if (!fecha) {
+      alert("Por favor, selecciona una fecha");
+      return;
+    }
+
+    await fetch(`${API}/reservas`, {
+      method: "POST",
+      headers: authHeaders(),
+      body: JSON.stringify({ usuario_id, libro_id, fecha })
+    });
+    reservaForm.reset();
+    cargarReservas();
+  });
+
+  reservasList.addEventListener("click", async (e) => {
+    if (e.target.classList.contains("eliminar-reserva")) {
+      const id = e.target.dataset.id;
+      await fetch(`${API}/reservas/${id}`, {
+        method: "DELETE",
+        headers: authHeaders()
+      });
+      cargarReservas();
+    }
+  });
+
+  // --- Selects dinámicos ---
+  async function actualizarSelectUsuarios() {
+    usuarioSelect.innerHTML = "";
+    const res = await fetch(`${API}/usuarios`, { headers: authHeaders() });
     const usuarios = await res.json();
-    const tbody = table.querySelector('tbody');
-    usuarios.forEach(u => {
-      const usuario = new Usuario(u);
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${usuario.id}</td><td>${usuario.nombre}</td><td>${usuario.correo}</td><td><button data-id="${usuario.id}" class="edit">Editar</button> <button data-id="${usuario.id}" class="delete">Eliminar</button></td>`;
-      tbody.appendChild(tr);
+    usuarios.forEach((u) => {
+      const option = document.createElement("option");
+      option.value = u.id;
+      option.textContent = u.nombre;
+      usuarioSelect.appendChild(option);
     });
-    table.onclick = handleUsuarioActions;
-  } catch {
-    showMessage('Error al cargar usuarios', 'error');
   }
-  document.getElementById('usuario-form').onsubmit = handleUsuarioForm;
-}
-function usuarioFormHTML() {
-  return `<form id="usuario-form" aria-label="Formulario de usuario">
-    <input type="hidden" id="usuario-id">
-    <label for="nombre">Nombre</label>
-    <input id="nombre" required maxlength="100">
-    <label for="correo">Correo</label>
-    <input id="correo" type="email" required maxlength="100">
-    <label for="contrasena">Contraseña</label>
-    <input id="contrasena" type="password" required maxlength="100">
-    <button type="submit">Guardar</button>
-  </form>`;
-}
-async function handleUsuarioForm(e) {
-  e.preventDefault();
-  const id = document.getElementById('usuario-id').value;
-  const data = {
-    nombre: document.getElementById('nombre').value.trim(),
-    correo: document.getElementById('correo').value.trim(),
-    contrasena: document.getElementById('contrasena').value.trim()
-  };
-  if (!data.nombre || !data.correo || !data.contrasena) {
-    showMessage('Todos los campos son obligatorios', 'error');
-    return;
-  }
-  try {
-    let res;
-    if (id) {
-      res = await fetch(`${API.usuarios}/${id}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
-    } else {
-      res = await fetch(API.usuarios, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
-    }
-    if (!res.ok) throw new Error();
-    showMessage('Usuario guardado');
-    renderUsuarios();
-  } catch {
-    showMessage('Error al guardar usuario', 'error');
-  }
-}
-async function handleUsuarioActions(e) {
-  if (e.target.classList.contains('edit')) {
-    const id = e.target.dataset.id;
-    try {
-      const res = await fetch(`${API.usuarios}/${id}`);
-      const usuario = await res.json();
-      document.getElementById('usuario-id').value = usuario.id;
-      document.getElementById('nombre').value = usuario.nombre;
-      document.getElementById('correo').value = usuario.correo;
-  document.getElementById('contrasena').value = '';
-    } catch {
-      showMessage('Error al cargar usuario', 'error');
-    }
-  }
-  if (e.target.classList.contains('delete')) {
-    if (!confirm('¿Eliminar este usuario?')) return;
-    const id = e.target.dataset.id;
-    try {
-      const res = await fetch(`${API.usuarios}/${id}`, {method:'DELETE'});
-      if (!res.ok) throw new Error();
-      showMessage('Usuario eliminado');
-      renderUsuarios();
-    } catch {
-      showMessage('Error al eliminar usuario', 'error');
-    }
-  }
-}
 
-// Reservas
-async function renderReservas() {
-  main.innerHTML = '<h2>Reservas</h2>' + reservaFormHTML();
-  const table = document.createElement('table');
-  table.innerHTML = `<thead><tr><th>ID</th><th>Usuario</th><th>Libro</th><th>Fecha</th><th>Acciones</th></tr></thead><tbody></tbody>`;
-  main.appendChild(table);
-  try {
-    const [usuarios, libros, reservas] = await Promise.all([
-      fetch(API.usuarios).then(r=>r.json()),
-      fetch(API.libros).then(r=>r.json()),
-      fetch(API.reservas).then(r=>r.json())
-    ]);
-    const tbody = table.querySelector('tbody');
-    reservas.forEach(r => {
-      const reserva = new Reserva(r);
-      const usuario = usuarios.find(u => u.id === reserva.usuario_id);
-      const libro = libros.find(l => l.id === reserva.libro_id);
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${reserva.id}</td><td>${usuario ? usuario.nombre : ''}</td><td>${libro ? libro.titulo : ''}</td><td>${reserva.fecha ? reserva.fecha.substring(0,10) : ''}</td><td><button data-id="${reserva.id}" class="delete">Eliminar</button></td>`;
-      tbody.appendChild(tr);
+  async function actualizarSelectLibros() {
+    libroSelect.innerHTML = "";
+    const res = await fetch(`${API}/libros`, { headers: authHeaders() });
+    const libros = await res.json();
+    libros.forEach((l) => {
+      const option = document.createElement("option");
+      option.value = l.id;
+      option.textContent = l.titulo;
+      libroSelect.appendChild(option);
     });
-    table.onclick = handleReservaActions;
-    renderReservaFormOptions(usuarios, libros);
-  } catch {
-    showMessage('Error al cargar reservas', 'error');
   }
-  document.getElementById('reserva-form').onsubmit = handleReservaForm;
-}
-function reservaFormHTML() {
-  return `<form id="reserva-form" aria-label="Formulario de reserva">
-    <label for="usuario_id">Usuario</label>
-    <select id="usuario_id" required></select>
-    <label for="libro_id">Libro</label>
-    <select id="libro_id" required></select>
-    <label for="fecha">Fecha</label>
-    <input id="fecha" type="date" required>
-    <button type="submit">Reservar</button>
-  </form>`;
-}
-function renderReservaFormOptions(usuarios, libros) {
-  const usuarioSel = document.getElementById('usuario_id');
-  usuarioSel.innerHTML = usuarios.map(u => `<option value="${u.id}">${u.nombre}</option>`).join('');
-  const libroSel = document.getElementById('libro_id');
-  libroSel.innerHTML = libros.map(l => `<option value="${l.id}">${l.titulo}</option>`).join('');
-}
-async function handleReservaForm(e) {
-  e.preventDefault();
-  const data = {
-    usuario_id: document.getElementById('usuario_id').value,
-    libro_id: document.getElementById('libro_id').value,
-    fecha: document.getElementById('fecha').value
-  };
-  if (!data.usuario_id || !data.libro_id || !data.fecha) {
-    showMessage('Todos los campos son obligatorios', 'error');
-    return;
-  }
-  try {
-    const res = await fetch(API.reservas, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
-    if (!res.ok) throw new Error();
-    showMessage('Reserva creada');
-    renderReservas();
-  } catch {
-    showMessage('Error al crear reserva', 'error');
-  }
-}
-async function handleReservaActions(e) {
-  if (e.target.classList.contains('delete')) {
-    if (!confirm('¿Eliminar esta reserva?')) return;
-    const id = e.target.dataset.id;
-    try {
-      const res = await fetch(`${API.reservas}/${id}`, {method:'DELETE'});
-      if (!res.ok) throw new Error();
-      showMessage('Reserva eliminada');
-      renderReservas();
-    } catch {
-      showMessage('Error al eliminar reserva', 'error');
-    }
-  }
-}
+
+  // --- Cambio de pestañas ---
+  const tabButtons = document.querySelectorAll(".tab-nav button[data-tab]");
+  const tabContents = document.querySelectorAll(".tab-content");
+
+  tabButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      tabButtons.forEach(b => b.classList.remove("active"));
+      tabContents.forEach(c => c.classList.add("hidden"));
+
+      btn.classList.add("active");
+      const tab = btn.getAttribute("data-tab");
+      document.getElementById(tab).classList.remove("hidden");
+    });
+  });
+});

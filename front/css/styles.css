@@ -1,123 +1,261 @@
-/* styles.css - Biblioteca Digital */
+/* ===== Base ===== */
+:root{
+  --fb-blue:#1877f2;
+  --fb-blue-dark:#145dbb;
+  --text:#222;
+  --bg:#f0f2f5;
+  --card:#fff;
+  --muted:#e4e6eb;
+  --danger:#e53935;
+  --danger-dark:#c62828;
+}
 
+*{box-sizing:border-box}
 body {
   font-family: 'Segoe UI', Arial, sans-serif;
   margin: 0;
-  background: #f7f7f7;
-  color: #222;
+  background: var(--bg);
+  color: var(--text);
 }
+
+/* ===== Header ===== */
 header {
-  background: #2d3e50;
+  background: var(--fb-blue);
   color: #fff;
   padding: 1rem 0.5rem;
   text-align: center;
 }
-nav {
-  margin-top: 1rem;
+header.header {
+  display: flex;
+  justify-content: center;   
+  align-items: center;       
+  padding: 1rem 2rem;
+  background-color: #e7f0ff; 
+  color: #1b3f7a;        
+  border-bottom: 1px solid #cbd8ff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
-nav button {
-  background: #fff;
-  color: #2d3e50;
-  border: none;
-  padding: 0.5rem 1.2rem;
-  margin: 0 0.3rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background 0.2s;
+
+header.header h1 {
+  margin: 0;
+  font-size: 1.8rem;
 }
-nav button:focus, nav button:hover {
-  background: #e0e7ef;
-  outline: 2px solid #2d3e50;
+
+
+.auth-container{
+  display:grid;
+  place-items:center;
+  padding: 2rem 1rem;
 }
-main {
-  max-width: 900px;
-  margin: 2rem auto;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-  padding: 2rem 1.5rem;
-  min-height: 400px;
+.auth-card{
+  background: var(--card);
+  width: 360px;
+  max-width: 95vw;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.12);
 }
-h2 {
-  color: #2d3e50;
-  margin-top: 0;
+.tab-buttons{
+  display:flex; gap:.5rem; margin-bottom:1rem;
 }
-form {
-  margin-bottom: 2rem;
+.tab-buttons button{
+  flex:1;
+  background: var(--muted);
+  color:#000;
+  border:none;
+  padding:.7rem 1rem;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:600;
+}
+.tab-buttons button.active{
+  background: var(--fb-blue);
+  color:#fff;
+}
+.hidden{ display:none !important; }
+
+#login-view form, #register-view form{
+  display:block;
 }
 label {
-  display: block;
-  margin-bottom: 0.3rem;
-  font-weight: 500;
+  display:block;
+  margin-bottom: .3rem;
+  font-weight:600;
 }
-input, select {
+input {
   width: 100%;
-  padding: 0.5rem;
-  margin-bottom: 1rem;
-  border: 1px solid #bbb;
-  border-radius: 4px;
+  padding: .7rem .9rem;
+  margin-bottom: .9rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
   font-size: 1rem;
 }
 button[type="submit"] {
-  background: #2d3e50;
+  width: 100%;
+  background: var(--fb-blue);
   color: #fff;
   border: none;
-  padding: 0.6rem 1.5rem;
-  border-radius: 4px;
+  padding: .75rem 1.2rem;
+  border-radius: 8px;
   font-size: 1rem;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background .15s;
+  font-weight:700;
 }
-button[type="submit"]:hover, button[type="submit"]:focus {
-  background: #1a2533;
+button[type="submit"]:hover,
+button[type="submit"]:focus { background: var(--fb-blue-dark); }
+
+/* ===== App container ===== */
+#app-view{
+  max-width: 1100px;
+  margin: 1.5rem auto;
+  background: var(--card);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.08);
+  padding: 1.2rem;
 }
+
+/* ===== Navbar (tabs) ===== */
+.tab-nav{
+  display:flex;
+  gap:.6rem;
+  flex-wrap:wrap;
+  align-items:center;
+  margin-bottom: 1rem;
+}
+.tab-nav button{
+  background: var(--muted);
+  color:#000;
+  border:none;
+  padding:.55rem 1rem;
+  border-radius: 8px;
+  cursor:pointer;
+  font-weight:600;
+}
+.tab-nav button.active{
+  background: var(--fb-blue);
+  color:#fff;
+}
+.tab-nav .logout{
+  margin-left:auto;
+  background: var(--danger);
+  color:#fff;
+}
+.tab-nav .logout:hover{ background: var(--danger-dark); }
+
+/* ===== Content ===== */
+#content-area { min-height: 300px; }
+
+/* Mensajes */
+.error {
+  color: #b00020;
+  background: #ffeaea;
+  padding: .6rem .8rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  border:1px solid #f5c2c7;
+}
+.success {
+  color: #155724;
+  background: #d4edda;
+  padding: .6rem .8rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  border:1px solid #c3e6cb;
+}
+/* ==== Estilo para los select en Reservas ==== */
+#usuario_id, #libro_id {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #dddfe2;
+  border-radius: 8px;
+  background-color: #fff;
+  font-size: 14px;
+  color: #1c1e21;
+  outline: none;
+  appearance: none; 
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 20 20'%3E%3Cpath fill='%233b5998' d='M5.5 7l4.5 4.5L14.5 7z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#usuario_id:focus, #libro_id:focus {
+  border-color: #3b5998; /* azul estilo Facebook */
+  box-shadow: 0 0 0 2px rgba(59, 89, 152, 0.2);
+}
+/* ===== Estilo para los SELECT ===== */
+select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background-color: #2c2c2c;  /* igual al fondo oscuro de inputs */
+  color: #f5f5f5;             /* texto claro */
+  font-size: 14px;
+  transition: border 0.3s ease, box-shadow 0.3s ease;
+}
+
+select:focus {
+  border-color: #d4af37; /* dorado */
+  box-shadow: 0 0 5px rgba(212, 175, 55, 0.6);
+  outline: none;
+}
+
+option {
+  background-color: #2c2c2c;
+  color: #f5f5f5;
+}
+
+
+/* Tablas y formularios del CRUD */
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
+  overflow:hidden;
+  border-radius:8px;
 }
 th, td {
   border: 1px solid #e0e0e0;
   padding: 0.7rem 0.5rem;
   text-align: left;
+  background:#fff;
 }
-th {
-  background: #f0f4f8;
-}
-tr:nth-child(even) {
-  background: #f9f9f9;
-}
-tr:focus-within {
-  outline: 2px solid #2d3e50;
-}
-.error {
-  color: #b00020;
-  background: #ffeaea;
-  padding: 0.5rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-}
-.success {
-  color: #155724;
-  background: #d4edda;
-  padding: 0.5rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-}
+th { background: #f6f8fa; }
+tr:nth-child(even) { background: #fafafa; }
+
+#libro-form, #reserva-form { margin-bottom: 1rem; }
+
+/* Footer */
 footer {
   text-align: center;
   padding: 1rem 0;
-  background: #e0e7ef;
-  color: #2d3e50;
+  background: linear-gradient(135deg, #e7f0ff, #c4d9ff);
+  color: #1b3f7a;
   margin-top: 2rem;
-  border-top: 1px solid #cfd8dc;
+  border-top: 1px solid #cbd8ff;
+  box-shadow: 0 -3px 6px rgba(0, 0, 0, 0.05);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.5px;
+  transition: background 0.3s ease;
 }
+
+footer a {
+  color: #1b3f7a;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+footer a:hover {
+  color: #0a2c5f;
+}
+
+/* Responsive */
 @media (max-width: 600px) {
-  main {
-    padding: 1rem 0.3rem;
-  }
-  table, th, td {
-    font-size: 0.95rem;
-  }
+  #app-view{ margin:1rem; padding:1rem; }
+  th, td { font-size: .95rem; }
 }
